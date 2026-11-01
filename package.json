@@ -1,0 +1,243 @@
+{
+  "name": "lumira",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Lumira desktop AI companion built with Electron, React, and TypeScript.",
+  "author": {
+    "name": "Lumira Team",
+    "email": "support@lumira.app"
+  },
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "postinstall": "node scripts/setup-vendor.mjs",
+    "download-models": "node scripts/download-models.mjs",
+    "download-models:all": "node scripts/download-models.mjs",
+    "download-models:lite": "node scripts/download-models.mjs --skip-asr",
+    "setup": "npm install && npm run build && node scripts/download-models.mjs",
+    "dev": "vite",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://127.0.0.1:47821 && cross-env DESKTOP_PET_USE_DEV_SERVER=1 electron .\"",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
+    "preview": "vite preview",
+    "start:app": "npm run build && electron .",
+    "smoke": "npm run build && cross-env SMOKE_TEST=1 electron .",
+    "smoke:packaged": "cross-env SMOKE_TEST=1 electron .",
+    "package": "npm run package:win",
+    "package:dir": "npm run build && electron-builder --dir --config.win.signAndEditExecutable=false",
+    "prepackage:win": "node scripts/download-models.mjs --skip-asr",
+    "package:win": "npm run build && electron-builder --win nsis --config.win.signAndEditExecutable=false",
+    "prepackage:win:signed": "node scripts/download-models.mjs --skip-asr",
+    "package:win:signed": "npm run build && electron-builder --win nsis",
+    "prepackage:mac": "node scripts/download-models.mjs --skip-asr",
+    "package:mac": "npm run build && electron-builder --mac",
+    "prepackage:linux": "node scripts/download-models.mjs --skip-asr",
+    "package:linux": "npm run build && electron-builder --linux",
+    "verify:release": "tsc -b --force && npm run lint && npm test && npm run build",
+    "prerelease-check": "node scripts/prerelease-check.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@ricky0123/vad-web": "^0.0.30",
+    "electron-updater": "^6.8.3",
+    "onnxruntime-web": "^1.24.3",
+    "pinyin-pro": "^3.28.1",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "sherpa-onnx-node": "^1.12.39",
+    "tesseract.js": "^7.0.0",
+    "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@stryker-mutator/core": "^9.6.1",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^24.12.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.27.7",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "fast-check": "^4.7.0",
+    "globals": "^17.5.0",
+    "tailwindcss": "^4.2.4",
+    "tinybench": "^6.0.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.59.0",
+    "vite": "^8.0.9",
+    "wait-on": "^8.0.3"
+  },
+  "overrides": {
+    "gh-pages": "^6.3.0"
+  },
+  "build": {
+    "appId": "com.lumira.companion",
+    "productName": "Lumira",
+    "directories": {
+      "output": "release"
+    },
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "scripts/omnivoice_server.py",
+      "scripts/glm_asr_server.py",
+      "package.json",
+      "!node_modules/onnxruntime-node/bin/napi-v3/win32/arm64/**",
+      "!**/*.map",
+      "!**/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.*",
+      "!**/onnxruntime-web/dist/ort-wasm-simd-threaded.jspi.*",
+      "!**/onnxruntime-web/dist/ort.training.wasm.min.*",
+      "!**/onnxruntime-web/dist/ort.webgl.*",
+      "!**/onnxruntime-web/dist/ort.webgpu.*",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "asarUnpack": [
+      "node_modules/sherpa-onnx-node/**",
+      "scripts/omnivoice_server.py",
+      "scripts/glm_asr_server.py"
+    ],
+    "icon": "public/lumira-256.png",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/lumira.ico",
+      "asarUnpack": [
+        "electron/mediaSession.ps1"
+      ],
+      "extraResources": [
+        {
+          "from": "sherpa-models",
+          "to": "sherpa-models",
+          "filter": [
+            "**/*",
+            "!_download.tar.bz2",
+            "!**/*.tar.bz2",
+            "!**/model.onnx",
+            "!**/.git",
+            "!**/.git/**",
+            "!**/.gitattributes",
+            "!**/test_wavs",
+            "!**/test_wavs/**",
+            "!**/export-onnx.py",
+            "!**/README.md",
+            "!**/LICENSE"
+          ]
+        },
+        {
+          "from": "public/vendor/vad/silero_vad_v5.onnx",
+          "to": "silero_vad_v5.onnx"
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "public/lumira-1024.png",
+      "category": "public.app-category.utilities",
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Lumira needs microphone access for voice conversations, wake word detection, and speech recognition.",
+        "NSScreenCaptureUsageDescription": "Lumira uses screen capture for desktop awareness, allowing your AI companion to understand what you are working on.",
+        "NSAppleEventsUsageDescription": "Lumira queries System Events to detect the app you're currently using and reads Now Playing info from Music and Spotify so your AI companion can respond to your context."
+      },
+      "extraResources": [
+        {
+          "from": "sherpa-models",
+          "to": "sherpa-models",
+          "filter": [
+            "**/*",
+            "!_download.tar.bz2",
+            "!**/*.tar.bz2",
+            "!**/model.onnx",
+            "!**/.git",
+            "!**/.git/**",
+            "!**/.gitattributes",
+            "!**/test_wavs",
+            "!**/test_wavs/**",
+            "!**/export-onnx.py",
+            "!**/README.md",
+            "!**/LICENSE"
+          ]
+        },
+        {
+          "from": "public/vendor/vad/silero_vad_v5.onnx",
+          "to": "silero_vad_v5.onnx"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/lumira-256.png",
+      "category": "Utility",
+      "executableName": "lumira",
+      "extraResources": [
+        {
+          "from": "sherpa-models",
+          "to": "sherpa-models",
+          "filter": [
+            "**/*",
+            "!_download.tar.bz2",
+            "!**/*.tar.bz2",
+            "!**/model.onnx",
+            "!**/.git",
+            "!**/.git/**",
+            "!**/.gitattributes",
+            "!**/test_wavs",
+            "!**/test_wavs/**",
+            "!**/export-onnx.py",
+            "!**/README.md",
+            "!**/LICENSE"
+          ]
+        },
+        {
+          "from": "public/vendor/vad/silero_vad_v5.onnx",
+          "to": "silero_vad_v5.onnx"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Lumira"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "productName": "Lumira",
+  "license": "MIT"
+}

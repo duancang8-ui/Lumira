@@ -1,0 +1,108 @@
+import type { ChatRole } from './chat'
+
+export type MemoryCategory =
+  | 'profile'
+  | 'preference'
+  | 'goal'
+  | 'habit'
+  | 'manual'
+  | 'feedback'
+  | 'project'
+  | 'reference'
+
+export type MemoryImportance = 'low' | 'normal' | 'high' | 'pinned' | 'reflection'
+
+export type EmotionalValence = 'positive' | 'negative' | 'neutral' | 'mixed'
+
+export interface MemoryItem {
+  id: string
+  content: string
+  category: MemoryCategory
+  source: string
+  createdAt: string
+  lastUsedAt?: string
+  importance?: MemoryImportance
+  /** Continuous importance score (0–1+). Decays daily, boosted on recall. */
+  importanceScore?: number
+  /** How many times this memory has been recalled into prompt context. */
+  recallCount?: number
+  /** ISO timestamp of the most recent recall. */
+  lastRecalledAt?: string
+  /** IDs of semantically related memories (cross-session linking). */
+  relatedIds?: string[]
+  /** Emotion snapshot at creation time — enables emotion-aware recall. */
+  emotionSnapshot?: { energy: number; warmth: number; curiosity: number; concern: number }
+  /** Dominant emotional valence when this memory was formed. */
+  emotionalValence?: EmotionalValence
+  /**
+   * Emotional-significance score computed from emotionSnapshot at write
+   * time (0–1). Multiplied into recall ranking so moments formed under
+   * extreme valence or high arousal resurface more readily — borrowed
+   * from Lumen's NPC-significance pattern. Does NOT feed back into decay,
+   * so pinned/high importance tiers keep their separate semantics.
+   */
+  significance?: number
+  /**
+   * Only set on `importance === 'reflection'` entries. A short topic
+   * slug used to dedup — a newly generated reflection on the same topic
+   * supersedes the previous one rather than accumulating variants.
+   */
+  reflectionTopic?: string
+  /** Confidence 0–1 asserted by the generator. */
+  reflectionConfidence?: number
+}
+
+export interface DailyMemoryEntry {
+  id: string
+  day: string
+  role: Exclude<ChatRole, 'system'>
+  content: string
+  source: 'chat' | 'voice'
+  createdAt: string
+}
+
+export type DailyMemoryStore = Record<string, DailyMemoryEntry[]>
+
+export type MemorySearchMode = 'keyword' | 'hybrid' | 'vector'
+
+export interface MemorySemanticMatch {
+  id: string
+  layer: 'long_term' | 'daily'
+  content: string
+  score: number
+}
+
+export interface MemoryRecallContext {
+  longTerm: MemoryItem[]
+  daily: DailyMemoryEntry[]
+  semantic: MemorySemanticMatch[]
+  searchModeUsed: MemorySearchMode
+  vectorSearchAvailable: boolean
+  /** IDs of long-term memories that were selected for prompt injection (for recall feedback). */
+  recalledLongTermIds?: string[]
+}
+
+// ── Semantic Clustering ───────────────────────────────────────────────────
+
+export interface MemoryCluster {
+  id: string
+  label: string
+  memberIds: string[]
+  centroidContent: string
+  createdAt: string
+  updatedAt: string
+}
+
+// ── Memory Archive ────────────────────────────────────────────────────────
+
+export interface ArchivedMemory {
+  id: string
+  content: string
+  category: MemoryCategory
+  source: string
+  createdAt: string
+  archivedAt: string
+  finalScore: number
+  importance?: MemoryImportance
+  clusterId?: string
+}

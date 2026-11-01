@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 118) rotate(90) scale(142)">
+      <stop stop-color="#1B1440"/>
+      <stop offset="1" stop-color="#070B18"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(116 110) rotate(52) scale(96)">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.45" stop-color="#B9F2FF"/>
+      <stop offset="1" stop-color="#53CFFF"/>
+    </radialGradient>
+    <filter id="glow" x="24" y="24" width="208" height="208" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="216" height="216" rx="58" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="58" fill="#5FD8FF" fill-opacity=".38" filter="url(#glow)"/>
+  <circle cx="128" cy="128" r="56" fill="url(#orb)"/>
+  <circle cx="128" cy="128" r="54" stroke="#E8FBFF" stroke-opacity=".65" stroke-width="3"/>
+  <circle cx="110" cy="108" r="11" fill="#FFFFFF" fill-opacity=".45"/>
+</svg>
